@@ -1,58 +1,20 @@
 import 'dart:async';
+import 'dart:html' as html;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:portfolio/constant/constant.dart';
 
-class DashBoardScreen extends StatefulWidget {
+class DashBoardScreen extends StatelessWidget {
   const DashBoardScreen({super.key});
 
-  @override
-  State<DashBoardScreen> createState() => _DashBoardScreenState();
-}
-
-class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              child: GridView.builder(
-                itemCount: 4,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2),
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          Constant.microsoftEdge,
-                          height: 50,
-                          width: 50,
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Microsoft Edge",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
           // Background image
           Container(
             decoration: const BoxDecoration(
@@ -141,6 +103,135 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 ),
               ),
             ),
+          ),
+          Container(
+            width: MediaQuery.sizeOf(context).width * 0.1,
+            margin: const EdgeInsets.symmetric(vertical: 24),
+            padding: EdgeInsets.zero,
+            child: GridView.builder(
+              itemCount: shortcutProperty.length,
+              padding: EdgeInsets.zero,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                mainAxisExtent: 150,
+                crossAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                return ShortcutWidget(
+                  onPressed: shortcutProperty[index].$4,
+                  title: shortcutProperty[index].$1,
+                  image: shortcutProperty[index].$2,
+                  color: shortcutProperty[index].$3,
+                  isFullScreen: index == 4,
+                  badgeCount: index == 0 ? 4 : null,
+                  isLabelVisible: index == 2 || index == 3,
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+final shortcutProperty = [
+  ("Projects", Constant.flutterLogo, const Color(0xffcee7fc), () {}),
+  (
+    "Resume",
+    Constant.resumeLogo,
+    Colors.white70,
+    () {
+      html.AnchorElement(href: Constant.resumeDownloadUrl)
+        ..setAttribute('download', 'Okwharobo_Solomon_Resume.pdf')
+        ..click();
+    }
+  ),
+  (
+    "Github",
+    Constant.githubLogo,
+    Colors.white70,
+    () {
+      html.window.open(Constant.githubUrl, "Monday Github URL");
+    }
+  ),
+  (
+    "LinkedIn",
+    Constant.linkedinLogo,
+    Colors.white,
+    () {
+      html.window.open(Constant.linkedinUrl, "Monday LinkedIn URL");
+    }
+  ),
+  ("Fullscreen", Constant.fullScreenSvg, Colors.white54, () {}),
+];
+
+class ShortcutWidget extends StatelessWidget {
+  const ShortcutWidget({
+    super.key,
+    this.onPressed,
+    this.isFullScreen = false,
+    required this.title,
+    required this.image,
+    required this.color,
+    this.badgeCount,
+    this.isLabelVisible = false,
+  });
+
+  final VoidCallback? onPressed;
+  final String title;
+  final String image;
+  final Color color;
+  final bool isFullScreen;
+  final int? badgeCount;
+  final bool isLabelVisible;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Badge.count(
+            count: badgeCount != null ? badgeCount! : 0,
+            isLabelVisible: badgeCount != null ? true : false,
+            child: Badge(
+              offset: const Offset(-40, 40),
+              isLabelVisible: isLabelVisible,
+              backgroundColor: Colors.transparent,
+              label: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Image.asset(
+                  Constant.export,
+                  height: 15,
+                  width: 15,
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: isFullScreen
+                    ? SvgPicture.asset(image)
+                    : Image.asset(
+                        image,
+                        height: 30,
+                        width: 30,
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(color: Colors.white),
           ),
         ],
       ),
