@@ -1,11 +1,15 @@
-import 'dart:async';
-import 'dart:html' as html;
+import 'dart:developer';
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:portfolio/constant/constant.dart';
+// import 'dart:html' as html;
+import "package:universal_html/html.dart" as html;
+
+import '../widget/date_time_widget.dart';
+import '../widget/shortcut_widget.dart';
 
 class DashBoardScreen extends StatelessWidget {
   const DashBoardScreen({super.key});
@@ -37,10 +41,10 @@ class DashBoardScreen extends StatelessWidget {
                   height: 68,
                   color:
                       Colors.black.withOpacity(0.3), // semi-transparent color
-                  child: Row(
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         // mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Icon(Icons.wb_sunny, color: Colors.white, size: 24),
@@ -63,28 +67,8 @@ class DashBoardScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      CenterTaskBarDisplay(),
                       Row(
-                        children: [
-                          Image.asset(
-                            Constant.windowLogo,
-                            height: 30,
-                            width: 30,
-                          ),
-                          const SizedBox(width: 15),
-                          Image.asset(
-                            Constant.microsoftEdge,
-                            height: 30,
-                            width: 30,
-                          ),
-                          const SizedBox(width: 15),
-                          Image.asset(
-                            Constant.outlookLogo,
-                            height: 30,
-                            width: 30,
-                          ),
-                        ],
-                      ),
-                      const Row(
                         children: [
                           TextButton(
                             onPressed: null,
@@ -135,6 +119,370 @@ class DashBoardScreen extends StatelessWidget {
   }
 }
 
+class CenterTaskBarDisplay extends StatefulWidget {
+  const CenterTaskBarDisplay({
+    super.key,
+  });
+
+  @override
+  State<CenterTaskBarDisplay> createState() => _CenterTaskBarDisplayState();
+}
+
+class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
+    with SingleTickerProviderStateMixin {
+  final OverlayPortalController _windowStartController =
+      OverlayPortalController();
+
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  final GlobalKey _windowStartButtonGlobalKey = GlobalKey();
+  double _windowStartHeight = 220.0;
+  final finalWindowStartHeight = 518.0;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () {
+            final RenderBox renderBox =
+                _windowStartButtonGlobalKey.currentContext?.findRenderObject()
+                    as RenderBox;
+            final position = renderBox.localToGlobal(Offset.zero);
+            log('Widget Position: ${position.dx}, ${position.dy}');
+            _windowStartController.toggle();
+            if (_windowStartHeight == finalWindowStartHeight) {
+              setState(() {
+                _windowStartHeight = 220.0;
+              });
+              isExpandedNotifier.value = false;
+            }
+          },
+          child: OverlayPortal(
+            controller: _windowStartController,
+            overlayChildBuilder: (context) {
+              return Positioned(
+                bottom: 70,
+                left: MediaQuery.sizeOf(context).width * 0.37,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: BackdropFilter(
+                    filter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      width: 450.0,
+                      height: _windowStartHeight,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(top: 20, bottom: 0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: <ShortcutWidget>[
+                                      ShortcutWidget(
+                                        title: "Projects",
+                                        image: Constant.flutterLogo,
+                                        color: const Color(0xffcee7fc),
+                                        onPressed: () {},
+                                        badgeCount: 4,
+                                      ),
+                                      ShortcutWidget(
+                                          title: "Resume",
+                                          image: Constant.resumeLogo,
+                                          color: Colors.white70,
+                                          onPressed: () {
+                                            html.AnchorElement(
+                                                href:
+                                                    Constant.resumeDownloadUrl)
+                                              ..setAttribute('download',
+                                                  'Okwharobo_Solomon_Resume.pdf')
+                                              ..click();
+                                          }),
+                                      ShortcutWidget(
+                                          title: "Github",
+                                          image: Constant.githubLogo,
+                                          color: Colors.white70,
+                                          onPressed: () {
+                                            html.window.open(Constant.githubUrl,
+                                                "Monday Github URL");
+                                          }),
+                                      ShortcutWidget(
+                                          title: "LinkedIn",
+                                          image: Constant.linkedinLogo,
+                                          color: Colors.white,
+                                          onPressed: () {
+                                            html.window.open(
+                                                Constant.linkedinUrl,
+                                                "Monday LinkedIn URL");
+                                          }),
+                                    ],
+                                  ),
+                                  ValueListenableBuilder(
+                                    valueListenable: isExpandedNotifier,
+                                    builder: (context, value, child) {
+                                      log('Value: $value');
+                                      return Visibility(
+                                        visible: value,
+                                        child: Expanded(
+                                          child: Container(
+                                            padding:
+                                                const EdgeInsets.only(top: 20),
+                                            child: Column(
+                                              children: [
+                                                _buildDivider(),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Phone",
+                                                  trailingText:
+                                                      "+234 916 7638 610",
+                                                ),
+                                                _buildDivider(),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Email",
+                                                  trailingText:
+                                                      "mondaysolomon01@gmail.com",
+                                                ),
+                                                _buildDivider(),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Address",
+                                                  trailingText:
+                                                      "Lagos, Nigeria",
+                                                ),
+                                                _buildDivider(),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Website",
+                                                  trailingText:
+                                                      "https://monday-solomon.netlify.app",
+                                                ),
+                                                _buildDivider(),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Experience",
+                                                  trailingText: "2+ years",
+                                                ),
+                                                const InformationHeaderWidget(
+                                                  leadingText: "Skills",
+                                                  trailingText:
+                                                      "Flutter, Dart\nUI/UX\nPython, FastAPI, Django\nMachine Learning (Beginner)\nMathematics\nGit",
+                                                ),
+                                                _buildDivider(),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 72,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(10.0),
+                                  bottomRight: Radius.circular(10.0)),
+                              child: BackdropFilter(
+                                filter: ui.ImageFilter.blur(
+                                    sigmaX: 20.0, sigmaY: 20.0),
+                                child: Container(
+                                  color: Colors.black.withOpacity(0.5),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  child: Row(
+                                    children: [
+                                      const CircleAvatar(
+                                        backgroundImage:
+                                            CachedNetworkImageProvider(
+                                          Constant.profileImageUrl,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 20),
+                                      const Text.rich(
+                                        TextSpan(
+                                          text: 'Solomon Okwharobo',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
+                                          children: <TextSpan>[
+                                            TextSpan(
+                                              text: '\nFlutter Developer',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      isExpandedNotifier.value
+                                          ? OverflowBar(
+                                              children: [
+                                                IconButton(
+                                                  onPressed: () {
+                                                    // TODO: Implement the action
+                                                  },
+                                                  icon: const Icon(Icons.call,
+                                                      color: Colors.white),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    // TODO: Implement the action
+                                                  },
+                                                  icon: const Icon(
+                                                      Icons.message,
+                                                      color: Colors.white),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {},
+                                                  icon: const Icon(
+                                                    Icons.language,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _windowStartHeight =
+                                                          220.0;
+                                                    });
+                                                    isExpandedNotifier.value =
+                                                        false;
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _windowStartHeight =
+                                                      finalWindowStartHeight;
+                                                });
+                                                isExpandedNotifier.value = true;
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                  foregroundColor:
+                                                      const Color(0xff9bbcdc),
+                                                  backgroundColor:
+                                                      const Color(0xff0d2550)),
+                                              child: const Text("See more"),
+                                            ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Image.asset(
+              Constant.windowLogo,
+              height: 30,
+              width: 30,
+              key: _windowStartButtonGlobalKey,
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        GestureDetector(
+          onTap: () {},
+          child: Image.asset(
+            Constant.microsoftEdge,
+            height: 30,
+            width: 30,
+          ),
+        ),
+        const SizedBox(width: 15),
+        GestureDetector(
+          onTap: () {},
+          child: Image.asset(
+            Constant.outlookLogo,
+            height: 30,
+            width: 30,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() => Divider(
+        color: Colors.white.withOpacity(0.3),
+        indent: 20,
+        endIndent: 20,
+      );
+}
+
+class InformationHeaderWidget extends StatelessWidget {
+  const InformationHeaderWidget({
+    super.key,
+    required this.leadingText,
+    required this.trailingText,
+  });
+
+  final String leadingText;
+  final String trailingText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 40),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              leadingText,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              trailingText,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 final shortcutProperty = [
   ("Projects", Constant.flutterLogo, const Color(0xffcee7fc), () {}),
   (
@@ -163,142 +511,15 @@ final shortcutProperty = [
       html.window.open(Constant.linkedinUrl, "Monday LinkedIn URL");
     }
   ),
-  ("Fullscreen", Constant.fullScreenSvg, Colors.white54, () {}),
+  if (kIsWeb)
+    (
+      "Fullscreen",
+      Constant.fullScreenSvg,
+      Colors.white54,
+      () {
+        html.document.documentElement!.requestFullscreen();
+      }
+    ),
 ];
 
-class ShortcutWidget extends StatelessWidget {
-  const ShortcutWidget({
-    super.key,
-    this.onPressed,
-    this.isFullScreen = false,
-    required this.title,
-    required this.image,
-    required this.color,
-    this.badgeCount,
-    this.isLabelVisible = false,
-  });
-
-  final VoidCallback? onPressed;
-  final String title;
-  final String image;
-  final Color color;
-  final bool isFullScreen;
-  final int? badgeCount;
-  final bool isLabelVisible;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Badge.count(
-            count: badgeCount != null ? badgeCount! : 0,
-            isLabelVisible: badgeCount != null ? true : false,
-            child: Badge(
-              offset: const Offset(-40, 40),
-              isLabelVisible: isLabelVisible,
-              backgroundColor: Colors.transparent,
-              label: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Image.asset(
-                  Constant.export,
-                  height: 15,
-                  width: 15,
-                ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: isFullScreen
-                    ? SvgPicture.asset(image)
-                    : Image.asset(
-                        image,
-                        height: 30,
-                        width: 30,
-                      ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// For formatting the date/time
-
-class DateTimeWidget extends StatefulWidget {
-  const DateTimeWidget({super.key});
-
-  @override
-  State createState() => _DateTimeWidgetState();
-}
-
-class _DateTimeWidgetState extends State<DateTimeWidget> {
-  late String _currentTime;
-  late String _currentDate;
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentTime = _formatTime(DateTime.now());
-    _currentDate = _formatDate(DateTime.now());
-
-    // Update every second
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      setState(() {
-        _currentTime = _formatTime(DateTime.now());
-      });
-    });
-  }
-
-  // Format time
-  String _formatTime(DateTime dateTime) {
-    return DateFormat('hh:mm a').format(dateTime);
-  }
-
-  // date format
-  String _formatDate(DateTime dateTime) {
-    return DateFormat('dd/MM/yyyy').format(dateTime);
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel(); // Cancel the timer to prevent memory leaks
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _currentTime,
-            style: const TextStyle(fontSize: 12, color: Colors.white),
-          ),
-          Text(
-            _currentDate,
-            style: const TextStyle(fontSize: 12, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
+final isExpandedNotifier = ValueNotifier<bool>(false);

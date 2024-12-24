@@ -17,4 +17,6 @@ class Constant {
 
   static const githubUrl = "https://github.com/black-coda";
   static const linkedinUrl = "https://www.linkedin.com/in/okwharobosm/";
+
+  static const profileImageUrl = "https://raw.githubusercontent.com/black-coda/image-host/main/IMG_20231122_154002_911.jpg";
 }
