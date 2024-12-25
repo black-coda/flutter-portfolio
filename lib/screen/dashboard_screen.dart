@@ -5,15 +5,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:portfolio/constant/constant.dart';
+import 'package:portfolio/widget/info_overlay_widget.dart';
 // import 'dart:html' as html;
 import "package:universal_html/html.dart" as html;
 
 import '../widget/date_time_widget.dart';
 import '../widget/shortcut_widget.dart';
 
-class DashBoardScreen extends StatelessWidget {
+class DashBoardScreen extends StatefulWidget {
   const DashBoardScreen({super.key});
 
+  @override
+  State<DashBoardScreen> createState() => _DashBoardScreenState();
+}
+
+class _DashBoardScreenState extends State<DashBoardScreen> {
+  final OverlayPortalController _windowStartController =
+      OverlayPortalController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,12 +47,12 @@ class DashBoardScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   width: double.infinity,
                   height: 68,
-                  color:
-                      Colors.black.withOpacity(0.3), // semi-transparent color
-                  child: const Row(
+                  color: Colors.black.withOpacity(0.3),
+                  // semi-transparent color
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
+                      const Row(
                         // mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Icon(Icons.wb_sunny, color: Colors.white, size: 24),
@@ -67,8 +75,9 @@ class DashBoardScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      CenterTaskBarDisplay(),
-                      Row(
+                      CenterTaskBarDisplay(
+                          windowStartController: _windowStartController),
+                      const Row(
                         children: [
                           TextButton(
                             onPressed: null,
@@ -120,19 +129,15 @@ class DashBoardScreen extends StatelessWidget {
 }
 
 class CenterTaskBarDisplay extends StatefulWidget {
-  const CenterTaskBarDisplay({
-    super.key,
-  });
+  const CenterTaskBarDisplay({super.key, required this.windowStartController});
 
+  final OverlayPortalController windowStartController;
   @override
   State<CenterTaskBarDisplay> createState() => _CenterTaskBarDisplayState();
 }
 
 class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
     with SingleTickerProviderStateMixin {
-  final OverlayPortalController _windowStartController =
-      OverlayPortalController();
-
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -156,6 +161,27 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   final GlobalKey _windowStartButtonGlobalKey = GlobalKey();
   double _windowStartHeight = 220.0;
   final finalWindowStartHeight = 518.0;
+
+  GlobalKey callMeKey = GlobalKey();
+
+  void _showHelpOverlay(
+    BuildContext context,
+    String message,
+    GlobalKey key,
+    double width,
+  ) {
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final position = renderBox.localToGlobal(Offset.zero);
+      InfoOverlayManager().showInfoOverlay(
+        context,
+        message,
+        position,
+        overlayWidth: width, // Optional: Customize width of the overlay
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -167,7 +193,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                     as RenderBox;
             final position = renderBox.localToGlobal(Offset.zero);
             log('Widget Position: ${position.dx}, ${position.dy}');
-            _windowStartController.toggle();
+            widget.windowStartController.toggle();
             if (_windowStartHeight == finalWindowStartHeight) {
               setState(() {
                 _windowStartHeight = 220.0;
@@ -176,7 +202,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
             }
           },
           child: OverlayPortal(
-            controller: _windowStartController,
+            controller: widget.windowStartController,
             overlayChildBuilder: (context) {
               return Positioned(
                 bottom: 70,
@@ -199,57 +225,59 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                             child: Padding(
                               padding:
                                   const EdgeInsets.only(top: 20, bottom: 0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: <ShortcutWidget>[
-                                      ShortcutWidget(
-                                        title: "Projects",
-                                        image: Constant.flutterLogo,
-                                        color: const Color(0xffcee7fc),
-                                        onPressed: () {},
-                                        badgeCount: 4,
-                                      ),
-                                      ShortcutWidget(
-                                          title: "Resume",
-                                          image: Constant.resumeLogo,
-                                          color: Colors.white70,
-                                          onPressed: () {
-                                            html.AnchorElement(
-                                                href:
-                                                    Constant.resumeDownloadUrl)
-                                              ..setAttribute('download',
-                                                  'Okwharobo_Solomon_Resume.pdf')
-                                              ..click();
-                                          }),
-                                      ShortcutWidget(
-                                          title: "Github",
-                                          image: Constant.githubLogo,
-                                          color: Colors.white70,
-                                          onPressed: () {
-                                            html.window.open(Constant.githubUrl,
-                                                "Monday Github URL");
-                                          }),
-                                      ShortcutWidget(
-                                          title: "LinkedIn",
-                                          image: Constant.linkedinLogo,
-                                          color: Colors.white,
-                                          onPressed: () {
-                                            html.window.open(
-                                                Constant.linkedinUrl,
-                                                "Monday LinkedIn URL");
-                                          }),
-                                    ],
-                                  ),
-                                  ValueListenableBuilder(
-                                    valueListenable: isExpandedNotifier,
-                                    builder: (context, value, child) {
-                                      log('Value: $value');
-                                      return Visibility(
-                                        visible: value,
-                                        child: Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: <ShortcutWidget>[
+                                        ShortcutWidget(
+                                          title: "Projects",
+                                          image: Constant.flutterLogo,
+                                          color: const Color(0xffcee7fc),
+                                          onPressed: () {},
+                                          badgeCount: 4,
+                                        ),
+                                        ShortcutWidget(
+                                            title: "Resume",
+                                            image: Constant.resumeLogo,
+                                            color: Colors.white70,
+                                            onPressed: () {
+                                              html.AnchorElement(
+                                                  href: Constant
+                                                      .resumeDownloadUrl)
+                                                ..setAttribute('download',
+                                                    'Okwharobo_Solomon_Resume.pdf')
+                                                ..click();
+                                            }),
+                                        ShortcutWidget(
+                                            title: "Github",
+                                            image: Constant.githubLogo,
+                                            color: Colors.white70,
+                                            onPressed: () {
+                                              html.window.open(
+                                                  Constant.githubUrl,
+                                                  "Monday Github URL");
+                                            }),
+                                        ShortcutWidget(
+                                            title: "LinkedIn",
+                                            image: Constant.linkedinLogo,
+                                            color: Colors.white,
+                                            onPressed: () {
+                                              html.window.open(
+                                                  Constant.linkedinUrl,
+                                                  "Monday LinkedIn URL");
+                                            }),
+                                      ],
+                                    ),
+                                    ValueListenableBuilder(
+                                      valueListenable: isExpandedNotifier,
+                                      builder: (context, value, child) {
+                                        log('Value: $value');
+                                        return Visibility(
+                                          visible: value,
                                           child: Container(
                                             padding:
                                                 const EdgeInsets.only(top: 20),
@@ -282,7 +310,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 _buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Experience",
-                                                  trailingText: "2+ years",
+                                                  trailingText: "1+ years",
                                                 ),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Skills",
@@ -293,11 +321,11 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                               ],
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -345,26 +373,70 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                       isExpandedNotifier.value
                                           ? OverflowBar(
                                               children: [
-                                                IconButton(
-                                                  onPressed: () {
-                                                    // TODO: Implement the action
+                                                MouseRegion(
+                                                  key: callMeKey,
+                                                  onHover: (onHover) {
+                                                    _showHelpOverlay(
+                                                      context,
+                                                      "Call Me",
+                                                      callMeKey,
+                                                      80,
+                                                    );
                                                   },
-                                                  icon: const Icon(Icons.call,
-                                                      color: Colors.white),
-                                                ),
-                                                IconButton(
-                                                  onPressed: () {
-                                                    // TODO: Implement the action
+                                                  onExit: (onExist) {
+                                                    InfoOverlayManager().hide();
                                                   },
-                                                  icon: const Icon(
-                                                      Icons.message,
-                                                      color: Colors.white),
+                                                  child: IconButton(
+                                                    onPressed: () {},
+                                                    icon: const Icon(Icons.call,
+                                                        color: Colors.white),
+                                                  ),
                                                 ),
-                                                IconButton(
-                                                  onPressed: () {},
-                                                  icon: const Icon(
-                                                    Icons.language,
-                                                    color: Colors.white,
+                                                MouseRegion(
+                                                  onHover: (onHover) {
+                                                    _showHelpOverlay(
+                                                      context,
+                                                      "Send me an email",
+                                                      callMeKey,
+                                                      154,
+                                                    );
+                                                  },
+                                                  onExit: (onExit) {
+                                                    InfoOverlayManager().hide();
+                                                  },
+                                                  child: IconButton(
+                                                    onPressed: () {},
+                                                    icon: const Icon(
+                                                        Icons.message,
+                                                        color: Colors.white),
+                                                  ),
+                                                ),
+                                                MouseRegion(
+                                                  onHover: (onHover) {
+                                                    _showHelpOverlay(
+                                                      context,
+                                                      "Visit my website",
+                                                      callMeKey,
+                                                      154,
+                                                    );
+                                                  },
+                                                  onExit: (onExit) {
+                                                    InfoOverlayManager().hide();
+                                                  },
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      //   TODO: Implement
+                                                      if (kIsWeb) {
+                                                        html.window.open(
+                                                            Constant
+                                                                .personalWebsiteUrl,
+                                                            "Personal Website");
+                                                      }
+                                                    },
+                                                    icon: const Icon(
+                                                      Icons.language,
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
                                                 ),
                                                 IconButton(
