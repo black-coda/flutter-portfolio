@@ -163,6 +163,8 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   final finalWindowStartHeight = 518.0;
 
   GlobalKey callMeKey = GlobalKey();
+  GlobalKey emailMeKey = GlobalKey();
+  GlobalKey myWebsiteKey = GlobalKey();
 
   void _showHelpOverlay(
     BuildContext context,
@@ -393,11 +395,12 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                   ),
                                                 ),
                                                 MouseRegion(
+                                                  key: emailMeKey,
                                                   onHover: (onHover) {
                                                     _showHelpOverlay(
                                                       context,
                                                       "Send me an email",
-                                                      callMeKey,
+                                                      emailMeKey,
                                                       154,
                                                     );
                                                   },
@@ -412,11 +415,12 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                   ),
                                                 ),
                                                 MouseRegion(
+                                                  key: myWebsiteKey,
                                                   onHover: (onHover) {
                                                     _showHelpOverlay(
                                                       context,
                                                       "Visit my website",
-                                                      callMeKey,
+                                                      myWebsiteKey,
                                                       154,
                                                     );
                                                   },
