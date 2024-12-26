@@ -21,4 +21,6 @@ class Constant {
   static const profileImageUrl =
       "https://raw.githubusercontent.com/black-coda/image-host/main/IMG_20231122_154002_911.jpg";
   static const personalWebsiteUrl = "https://monday-solomon.netlify.app/";
+
+  static const apiKey = "18fb1265e40d439985800549230910";
 }

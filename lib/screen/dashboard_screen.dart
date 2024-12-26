@@ -1,13 +1,16 @@
-import 'dart:developer';
+import 'dart:convert';
+import 'dart:developer' show log;
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:portfolio/constant/constant.dart';
 import 'package:portfolio/widget/info_overlay_widget.dart';
 // import 'dart:html' as html;
 import "package:universal_html/html.dart" as html;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widget/date_time_widget.dart';
 import '../widget/shortcut_widget.dart';
@@ -52,25 +55,30 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         // mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(Icons.wb_sunny, color: Colors.white, size: 24),
-                          SizedBox(width: 10),
-                          Text.rich(
-                            TextSpan(
-                              text: '28°C',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 14),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: '\nClear',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white,
+                          const Icon(Icons.wb_sunny,
+                              color: Colors.white, size: 24),
+                          const SizedBox(width: 10),
+                          ValueListenableBuilder(
+                            valueListenable: currentTemperatureNotifier,
+                            builder: (context, value, child) => Text.rich(
+                              TextSpan(
+                                text:
+                                    '${currentTemperatureNotifier.value.toString()}°C',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                                children: const <TextSpan>[
+                                  TextSpan(
+                                    text: '\nClear',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -144,6 +152,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   @override
   void initState() {
     super.initState();
+    getLocation();
 
     _animationController = AnimationController(
       vsync: this,
@@ -156,6 +165,25 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
         curve: Curves.easeInOut,
       ),
     );
+  }
+
+  void getLocation() {
+    html.window.navigator.geolocation.getCurrentPosition().then((position) {
+      final latitude = position.coords!.latitude;
+      final longitude = position.coords!.longitude;
+
+      http
+          .get(Uri.parse(
+              "http://api.weatherapi.com/v1/current.json?key=${Constant.apiKey}&q=$latitude,$longitude"))
+          .then((response) {
+        final data = jsonDecode(response.body);
+        double tempInCelsius = data['current']['temp_c'];
+        log('Temperature: $tempInCelsius');
+        currentTemperatureNotifier.value = tempInCelsius;
+        log('Response: ${response.body}');
+      });
+      log('Latitude: $latitude, Longitude: $longitude');
+    });
   }
 
   final GlobalKey _windowStartButtonGlobalKey = GlobalKey();
@@ -408,7 +436,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                     InfoOverlayManager().hide();
                                                   },
                                                   child: IconButton(
-                                                    onPressed: () {},
+                                                    onPressed: _launchMail,
                                                     icon: const Icon(
                                                         Icons.message,
                                                         color: Colors.white),
@@ -522,6 +550,36 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
         indent: 20,
         endIndent: 20,
       );
+
+  Future<void> _launchMail() async {
+    final Uri params = Uri(
+      scheme: 'mailto',
+      path: "mondaysolomon01@gmail.com",
+      query: {
+        'subject': "Portfolio Inquiry - OKWHAROBO SOLOMON MONDAY",
+        'body': '''
+Dear [Recipient Name],
+
+My name is [Your Name] and I am a [Your Profession]. I am writing to express my interest in your work and discuss potential opportunities.
+
+You can view my online portfolio at: [Link to your portfolio]
+
+Sincerely,
+
+[Your Name]
+            ''',
+      }
+          .entries
+          .map((MapEntry<String, String> e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+          .join('&'),
+    );
+    if (await canLaunchUrl(params)) {
+      await launchUrl(params);
+    } else {
+      throw 'Could not launch $params';
+    }
+  }
 }
 
 class InformationHeaderWidget extends StatelessWidget {
@@ -599,3 +657,4 @@ final shortcutProperty = [
 ];
 
 final isExpandedNotifier = ValueNotifier<bool>(false);
+final currentTemperatureNotifier = ValueNotifier<num>(28);
