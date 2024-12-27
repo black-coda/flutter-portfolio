@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:portfolio/screen/dashboard_screen.dart';
+import 'package:portfolio/screen/window_dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +17,7 @@ class MainApplication extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: "Window"),
-      home: const DashBoardScreen(),
+      home: const WindowsDashBoardScreen(),
     );
   }
 }

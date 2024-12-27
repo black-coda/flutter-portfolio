@@ -10,14 +10,14 @@ import 'package:portfolio/widget/info_overlay_widget.dart';
 import '../widget/date_time_widget.dart';
 import '../widget/shortcut_widget.dart';
 
-class DashBoardScreen extends StatefulWidget {
-  const DashBoardScreen({super.key});
+class WindowsDashBoardScreen extends StatefulWidget {
+  const WindowsDashBoardScreen({super.key});
 
   @override
-  State<DashBoardScreen> createState() => _DashBoardScreenState();
+  State<WindowsDashBoardScreen> createState() => _WindowsDashBoardScreenState();
 }
 
-class _DashBoardScreenState extends State<DashBoardScreen> {
+class _WindowsDashBoardScreenState extends State<WindowsDashBoardScreen> {
   final OverlayPortalController _windowStartController =
       OverlayPortalController();
   @override
@@ -169,8 +169,6 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   GlobalKey callMeKey = GlobalKey();
   GlobalKey emailMeKey = GlobalKey();
   GlobalKey myWebsiteKey = GlobalKey();
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +356,8 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 MouseRegion(
                                                   key: callMeKey,
                                                   onHover: (onHover) {
-                                                    UtilityService.showHelpOverlay(
+                                                    UtilityService
+                                                        .showHelpOverlay(
                                                       context,
                                                       "Call Me",
                                                       callMeKey,
@@ -377,7 +376,8 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 MouseRegion(
                                                   key: emailMeKey,
                                                   onHover: (onHover) {
-                                                    UtilityService.showHelpOverlay(
+                                                    UtilityService
+                                                        .showHelpOverlay(
                                                       context,
                                                       "Send me an email",
                                                       emailMeKey,
@@ -397,7 +397,8 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 MouseRegion(
                                                   key: myWebsiteKey,
                                                   onHover: (onHover) {
-                                                    UtilityService.showHelpOverlay(
+                                                    UtilityService
+                                                        .showHelpOverlay(
                                                       context,
                                                       "Visit my website",
                                                       myWebsiteKey,
@@ -527,6 +528,5 @@ class InformationHeaderWidget extends StatelessWidget {
     );
   }
 }
-
 
 final isExpandedNotifier = ValueNotifier<bool>(false);
