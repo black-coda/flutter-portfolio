@@ -1,16 +1,11 @@
-import 'dart:convert';
 import 'dart:developer' show log;
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:portfolio/constant/constant.dart';
+import 'package:portfolio/utility_method.dart';
 import 'package:portfolio/widget/info_overlay_widget.dart';
-// import 'dart:html' as html;
-import "package:universal_html/html.dart" as html;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../widget/date_time_widget.dart';
 import '../widget/shortcut_widget.dart';
@@ -110,7 +105,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
             margin: const EdgeInsets.symmetric(vertical: 24),
             padding: EdgeInsets.zero,
             child: GridView.builder(
-              itemCount: shortcutProperty.length,
+              itemCount: UtilityService.shortcutProperty.length,
               padding: EdgeInsets.zero,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 1,
@@ -119,10 +114,10 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
               ),
               itemBuilder: (context, index) {
                 return ShortcutWidget(
-                  onPressed: shortcutProperty[index].$4,
-                  title: shortcutProperty[index].$1,
-                  image: shortcutProperty[index].$2,
-                  color: shortcutProperty[index].$3,
+                  onPressed: UtilityService.shortcutProperty[index].$4,
+                  title: UtilityService.shortcutProperty[index].$1,
+                  image: UtilityService.shortcutProperty[index].$2,
+                  color: UtilityService.shortcutProperty[index].$3,
                   isFullScreen: index == 4,
                   badgeCount: index == 0 ? 4 : null,
                   isLabelVisible: index == 2 || index == 3,
@@ -152,7 +147,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   @override
   void initState() {
     super.initState();
-    getLocation();
+    UtilityService.getLocation();
 
     _animationController = AnimationController(
       vsync: this,
@@ -167,25 +162,6 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
     );
   }
 
-  void getLocation() {
-    html.window.navigator.geolocation.getCurrentPosition().then((position) {
-      final latitude = position.coords!.latitude;
-      final longitude = position.coords!.longitude;
-
-      http
-          .get(Uri.parse(
-              "http://api.weatherapi.com/v1/current.json?key=${Constant.apiKey}&q=$latitude,$longitude"))
-          .then((response) {
-        final data = jsonDecode(response.body);
-        double tempInCelsius = data['current']['temp_c'];
-        log('Temperature: $tempInCelsius');
-        currentTemperatureNotifier.value = tempInCelsius;
-        log('Response: ${response.body}');
-      });
-      log('Latitude: $latitude, Longitude: $longitude');
-    });
-  }
-
   final GlobalKey _windowStartButtonGlobalKey = GlobalKey();
   double _windowStartHeight = 220.0;
   final finalWindowStartHeight = 518.0;
@@ -194,23 +170,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
   GlobalKey emailMeKey = GlobalKey();
   GlobalKey myWebsiteKey = GlobalKey();
 
-  void _showHelpOverlay(
-    BuildContext context,
-    String message,
-    GlobalKey key,
-    double width,
-  ) {
-    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final position = renderBox.localToGlobal(Offset.zero);
-      InfoOverlayManager().showInfoOverlay(
-        context,
-        message,
-        position,
-        overlayWidth: width, // Optional: Customize width of the overlay
-      );
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -267,39 +227,31 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                           title: "Projects",
                                           image: Constant.flutterLogo,
                                           color: const Color(0xffcee7fc),
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            // TODO: implement onPressed
+                                          },
                                           badgeCount: 4,
                                         ),
-                                        ShortcutWidget(
+                                        const ShortcutWidget(
                                             title: "Resume",
                                             image: Constant.resumeLogo,
                                             color: Colors.white70,
-                                            onPressed: () {
-                                              html.AnchorElement(
-                                                  href: Constant
-                                                      .resumeDownloadUrl)
-                                                ..setAttribute('download',
-                                                    'Okwharobo_Solomon_Resume.pdf')
-                                                ..click();
-                                            }),
-                                        ShortcutWidget(
-                                            title: "Github",
-                                            image: Constant.githubLogo,
-                                            color: Colors.white70,
-                                            onPressed: () {
-                                              html.window.open(
-                                                  Constant.githubUrl,
-                                                  "Monday Github URL");
-                                            }),
-                                        ShortcutWidget(
-                                            title: "LinkedIn",
-                                            image: Constant.linkedinLogo,
-                                            color: Colors.white,
-                                            onPressed: () {
-                                              html.window.open(
-                                                  Constant.linkedinUrl,
-                                                  "Monday LinkedIn URL");
-                                            }),
+                                            onPressed:
+                                                UtilityService.downloadResume),
+                                        const ShortcutWidget(
+                                          title: "Github",
+                                          image: Constant.githubLogo,
+                                          color: Colors.white70,
+                                          onPressed:
+                                              UtilityService.visitGithubProfile,
+                                        ),
+                                        const ShortcutWidget(
+                                          title: "LinkedIn",
+                                          image: Constant.linkedinLogo,
+                                          color: Colors.white,
+                                          onPressed: UtilityService
+                                              .visitLinkedinProfile,
+                                        ),
                                       ],
                                     ),
                                     ValueListenableBuilder(
@@ -313,31 +265,31 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 const EdgeInsets.only(top: 20),
                                             child: Column(
                                               children: [
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Phone",
                                                   trailingText:
                                                       "+234 916 7638 610",
                                                 ),
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Email",
                                                   trailingText:
                                                       "mondaysolomon01@gmail.com",
                                                 ),
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Address",
                                                   trailingText:
                                                       "Lagos, Nigeria",
                                                 ),
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Website",
-                                                  trailingText:
-                                                      "https://monday-solomon.netlify.app",
+                                                  trailingText: Constant
+                                                      .personalWebsiteUrl,
                                                 ),
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                                 const InformationHeaderWidget(
                                                   leadingText: "Experience",
                                                   trailingText: "1+ years",
@@ -347,7 +299,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                   trailingText:
                                                       "Flutter, Dart\nUI/UX\nPython, FastAPI, Django\nMachine Learning (Beginner)\nMathematics\nGit",
                                                 ),
-                                                _buildDivider(),
+                                                UtilityService.buildDivider(),
                                               ],
                                             ),
                                           ),
@@ -406,7 +358,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 MouseRegion(
                                                   key: callMeKey,
                                                   onHover: (onHover) {
-                                                    _showHelpOverlay(
+                                                    UtilityService.showHelpOverlay(
                                                       context,
                                                       "Call Me",
                                                       callMeKey,
@@ -425,7 +377,7 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                 MouseRegion(
                                                   key: emailMeKey,
                                                   onHover: (onHover) {
-                                                    _showHelpOverlay(
+                                                    UtilityService.showHelpOverlay(
                                                       context,
                                                       "Send me an email",
                                                       emailMeKey,
@@ -435,17 +387,17 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                   onExit: (onExit) {
                                                     InfoOverlayManager().hide();
                                                   },
-                                                  child: IconButton(
-                                                    onPressed: _launchMail,
-                                                    icon: const Icon(
-                                                        Icons.message,
+                                                  child: const IconButton(
+                                                    onPressed: UtilityService
+                                                        .launchMail,
+                                                    icon: Icon(Icons.message,
                                                         color: Colors.white),
                                                   ),
                                                 ),
                                                 MouseRegion(
                                                   key: myWebsiteKey,
                                                   onHover: (onHover) {
-                                                    _showHelpOverlay(
+                                                    UtilityService.showHelpOverlay(
                                                       context,
                                                       "Visit my website",
                                                       myWebsiteKey,
@@ -457,13 +409,8 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
                                                   },
                                                   child: IconButton(
                                                     onPressed: () {
-                                                      //   TODO: Implement
-                                                      if (kIsWeb) {
-                                                        html.window.open(
-                                                            Constant
-                                                                .personalWebsiteUrl,
-                                                            "Personal Website");
-                                                      }
+                                                      UtilityService
+                                                          .visitPersonalWebsite();
                                                     },
                                                     icon: const Icon(
                                                       Icons.language,
@@ -544,42 +491,6 @@ class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
       ],
     );
   }
-
-  Widget _buildDivider() => Divider(
-        color: Colors.white.withOpacity(0.3),
-        indent: 20,
-        endIndent: 20,
-      );
-
-  Future<void> _launchMail() async {
-    final Uri params = Uri(
-      scheme: 'mailto',
-      path: "mondaysolomon01@gmail.com",
-      query: {
-        'subject': "Portfolio Inquiry - OKWHAROBO SOLOMON MONDAY",
-        'body': '''
-Dear [Recipient Name],
-
-My name is [Your Name] and I am a [Your Profession]. I am writing to express my interest in your work and discuss potential opportunities.
-
-You can view my online portfolio at: [Link to your portfolio]
-
-Sincerely,
-
-[Your Name]
-            ''',
-      }
-          .entries
-          .map((MapEntry<String, String> e) =>
-              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-          .join('&'),
-    );
-    if (await canLaunchUrl(params)) {
-      await launchUrl(params);
-    } else {
-      throw 'Could not launch $params';
-    }
-  }
 }
 
 class InformationHeaderWidget extends StatelessWidget {
@@ -617,44 +528,5 @@ class InformationHeaderWidget extends StatelessWidget {
   }
 }
 
-final shortcutProperty = [
-  ("Projects", Constant.flutterLogo, const Color(0xffcee7fc), () {}),
-  (
-    "Resume",
-    Constant.resumeLogo,
-    Colors.white70,
-    () {
-      html.AnchorElement(href: Constant.resumeDownloadUrl)
-        ..setAttribute('download', 'Okwharobo_Solomon_Resume.pdf')
-        ..click();
-    }
-  ),
-  (
-    "Github",
-    Constant.githubLogo,
-    Colors.white70,
-    () {
-      html.window.open(Constant.githubUrl, "Monday Github URL");
-    }
-  ),
-  (
-    "LinkedIn",
-    Constant.linkedinLogo,
-    Colors.white,
-    () {
-      html.window.open(Constant.linkedinUrl, "Monday LinkedIn URL");
-    }
-  ),
-  if (kIsWeb)
-    (
-      "Fullscreen",
-      Constant.fullScreenSvg,
-      Colors.white54,
-      () {
-        html.document.documentElement!.requestFullscreen();
-      }
-    ),
-];
 
 final isExpandedNotifier = ValueNotifier<bool>(false);
-final currentTemperatureNotifier = ValueNotifier<num>(28);
