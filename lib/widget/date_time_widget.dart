@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:portfolio/utility_method.dart';
 
 class DateTimeWidget extends StatefulWidget {
   const DateTimeWidget({super.key});
@@ -20,25 +20,15 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
   @override
   void initState() {
     super.initState();
-    _currentTime = _formatTime(DateTime.now());
-    _currentDate = _formatDate(DateTime.now());
+    _currentTime = UtilityService.formatTime(DateTime.now());
+    _currentDate = UtilityService.formatDate(DateTime.now());
 
     // Update every second
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
       setState(() {
-        _currentTime = _formatTime(DateTime.now());
+        _currentTime = UtilityService.formatTime(DateTime.now());
       });
     });
-  }
-
-  // Format time
-  String _formatTime(DateTime dateTime) {
-    return DateFormat('hh:mm a').format(dateTime);
-  }
-
-  // date format
-  String _formatDate(DateTime dateTime) {
-    return DateFormat('dd/MM/yyyy').format(dateTime);
   }
 
   @override
@@ -64,5 +54,29 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
         ],
       ),
     );
+  }
+}
+
+class DateTimeNotifier extends ValueNotifier<(String, String)> {
+  late Timer _timer;
+
+  DateTimeNotifier() : super((_getCurrentTime(), _getCurrentDate())) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      value = (_getCurrentTime(), _getCurrentDate());
+    });
+  }
+
+  static String _getCurrentTime() {
+    return UtilityService.formatTime(DateTime.now());
+  }
+
+  static String _getCurrentDate() {
+    return UtilityService.formatMacOSDate(DateTime.now());
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:intl/intl.dart';
 import 'package:portfolio/constant/constant.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +80,8 @@ Sincerely,
         final data = jsonDecode(response.body);
         double tempInCelsius = data['current']['temp_c'];
         log('Temperature: $tempInCelsius');
-        currentTemperatureNotifier.value = tempInCelsius;
+        currentTemperatureNotifier.value =
+            WeatherData.fromJson(jsonDecode(response.body));
         log('Response: ${response.body}');
       });
       log('Latitude: $latitude, Longitude: $longitude');
@@ -147,8 +149,51 @@ Sincerely,
       );
     }
   }
+
+  // Format time
+  static String formatTime(DateTime dateTime) {
+    return DateFormat('hh:mm a').format(dateTime);
+  }
+
+  static String formatMacOSDate(DateTime date) {
+    return DateFormat('EEE, MMM d').format(date);
+  }
+
+  // date format
+  static String formatDate(DateTime dateTime) {
+    return DateFormat('dd/MM/yyyy').format(dateTime);
+  }
 }
 
 typedef MethodProperty = (String, String, Color, VoidCallback);
 
-final currentTemperatureNotifier = ValueNotifier<num>(28);
+final currentTemperatureNotifier =
+    ValueNotifier<WeatherData>(WeatherData.initialData());
+
+class WeatherData {
+  final num temperature;
+  final String city;
+  final String iconUrl;
+  final (num, num) latAndLong;
+  final String weatherCondition;
+  final bool isFetching;
+
+ 
+
+  WeatherData.fromJson(Map<String, dynamic> json)
+      : temperature = json['current']['temp_c'] ,
+        city = json['location']['name'],
+        iconUrl = json['current']['condition']['icon'],
+        weatherCondition = json['current']['condition']['text'],
+        isFetching = false,
+        latAndLong = (json['location']['lat'], json['location']['lon']);
+
+  WeatherData.initialData()
+      : temperature = 0.0,
+        city = "Fetching city ...",
+        iconUrl = "",
+        weatherCondition = "",
+        isFetching = true,
+        latAndLong = (0.0, 0.0);
+
+}

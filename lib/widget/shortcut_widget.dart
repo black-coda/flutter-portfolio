@@ -28,6 +28,7 @@ class ShortcutWidget extends StatelessWidget {
       onTap: onPressed,
       child: Container(
         padding: EdgeInsets.zero,
+        height: 40,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -39,9 +40,10 @@ class ShortcutWidget extends StatelessWidget {
                 isLabelVisible: isLabelVisible,
                 backgroundColor: Colors.transparent,
                 label: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(0),
                   decoration: const BoxDecoration(
-                      color: Colors.white, borderRadius: BorderRadius.zero),
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.zero),
                   child: Image.asset(
                     Constant.export,
                     height: 15,

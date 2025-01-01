@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:portfolio/constant/constant.dart';
 import 'package:portfolio/utility_method.dart';
+import 'package:portfolio/widget/desktop_icon_widget.dart';
 import 'package:portfolio/widget/info_overlay_widget.dart';
 
 import '../widget/date_time_widget.dart';
@@ -56,12 +57,12 @@ class _WindowsDashBoardScreenState extends State<WindowsDashBoardScreen> {
                           const Icon(Icons.wb_sunny,
                               color: Colors.white, size: 24),
                           const SizedBox(width: 10),
-                          ValueListenableBuilder(
+                          ValueListenableBuilder<WeatherData>(
                             valueListenable: currentTemperatureNotifier,
-                            builder: (context, value, child) => Text.rich(
+                            builder: (context, weatherData, child) => Text.rich(
                               TextSpan(
                                 text:
-                                    '${currentTemperatureNotifier.value.toString()}°C',
+                                    '${weatherData.temperature.toString()}°C',
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 14),
                                 children: const <TextSpan>[
@@ -78,7 +79,7 @@ class _WindowsDashBoardScreenState extends State<WindowsDashBoardScreen> {
                           ),
                         ],
                       ),
-                      CenterTaskBarDisplay(
+                      WindowTaskBarCenterView(
                           windowStartController: _windowStartController),
                       const Row(
                         children: [
@@ -100,46 +101,24 @@ class _WindowsDashBoardScreenState extends State<WindowsDashBoardScreen> {
               ),
             ),
           ),
-          Container(
-            width: MediaQuery.sizeOf(context).width * 0.1,
-            margin: const EdgeInsets.symmetric(vertical: 24),
-            padding: EdgeInsets.zero,
-            child: GridView.builder(
-              itemCount: UtilityService.shortcutProperty.length,
-              padding: EdgeInsets.zero,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                mainAxisExtent: 150,
-                crossAxisSpacing: 10,
-              ),
-              itemBuilder: (context, index) {
-                return ShortcutWidget(
-                  onPressed: UtilityService.shortcutProperty[index].$4,
-                  title: UtilityService.shortcutProperty[index].$1,
-                  image: UtilityService.shortcutProperty[index].$2,
-                  color: UtilityService.shortcutProperty[index].$3,
-                  isFullScreen: index == 4,
-                  badgeCount: index == 0 ? 4 : null,
-                  isLabelVisible: index == 2 || index == 3,
-                );
-              },
-            ),
-          )
+          const DesktopIcon(),
         ],
       ),
     );
   }
 }
 
-class CenterTaskBarDisplay extends StatefulWidget {
-  const CenterTaskBarDisplay({super.key, required this.windowStartController});
+class WindowTaskBarCenterView extends StatefulWidget {
+  const WindowTaskBarCenterView(
+      {super.key, required this.windowStartController});
 
   final OverlayPortalController windowStartController;
   @override
-  State<CenterTaskBarDisplay> createState() => _CenterTaskBarDisplayState();
+  State<WindowTaskBarCenterView> createState() =>
+      _WindowTaskBarCenterViewState();
 }
 
-class _CenterTaskBarDisplayState extends State<CenterTaskBarDisplay>
+class _WindowTaskBarCenterViewState extends State<WindowTaskBarCenterView>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
